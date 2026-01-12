@@ -36,7 +36,7 @@ export default function AudioController() {
         return () => {
             removeGlobalListeners();
         };
-    }, []);
+    }, [isPlaying]);
 
     const toggleAudio = () => {
         if (!audioRef.current) return;

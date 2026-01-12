@@ -1,7 +1,7 @@
 'use client';
 
 import { useMotionValueEvent, MotionValue, useSpring } from 'framer-motion';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 
 export default function ScrollyCanvas({
     numFrames = 75,
@@ -41,7 +41,7 @@ export default function ScrollyCanvas({
     }, [numFrames]);
 
     // Render Frame
-    const renderFrame = (index: number) => {
+    const renderFrame = useCallback((index: number) => {
         const canvas = canvasRef.current;
         const context = canvas?.getContext('2d');
         const image = images[index];
@@ -68,7 +68,7 @@ export default function ScrollyCanvas({
         }
 
         context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
-    };
+    }, [images]);
 
     // Resize Handler
     useEffect(() => {
@@ -91,7 +91,7 @@ export default function ScrollyCanvas({
         handleResize();
 
         return () => window.removeEventListener('resize', handleResize);
-    }, [images, scrollYProgress, numFrames]);
+    }, [images, scrollYProgress, numFrames, renderFrame]);
 
     // Scroll Listener
     useMotionValueEvent(smoothProgress, "change", (latest) => {
@@ -115,7 +115,7 @@ export default function ScrollyCanvas({
             );
             renderFrame(frameIndex);
         }
-    }, [isLoaded, images, smoothProgress, numFrames]);
+    }, [isLoaded, images, smoothProgress, numFrames, renderFrame]);
 
     return (
         <div className="absolute inset-0 w-full h-full">
