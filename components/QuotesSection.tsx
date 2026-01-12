@@ -100,7 +100,7 @@ function QuoteItem({ item, index }: { item: typeof quotes[0], index: number }) {
                         />
                         {/* Name Tag Overlay on Image */}
                         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 font-mono text-xs bg-black/80 backdrop-blur-md px-4 py-2 text-white border border-white/20 rounded-full whitespace-nowrap">
-                            {item.name} // {item.role}
+                            {item.name} {'//'} {item.role}
                         </div>
                     </div>
                 </div>
@@ -131,7 +131,7 @@ function QuoteItem({ item, index }: { item: typeof quotes[0], index: number }) {
                         </div>
                         {/* Added minimal min-height to prevent jarring layout shifts if truth is wildly larger, though Grid handles max height */}
                         <blockquote className="text-2xl md:text-3xl font-mono font-light leading-snug text-white/80">
-                            <span className="text-white/30 mr-2">"</span>{item.positive}<span className="text-white/30 ml-2">"</span>
+                            <span className="text-white/30 mr-2">&quot;</span>{item.positive}<span className="text-white/30 ml-2">&quot;</span>
                         </blockquote>
                         <div className="h-px w-20 bg-white/20 mt-8" />
                     </div>
@@ -154,7 +154,7 @@ function QuoteItem({ item, index }: { item: typeof quotes[0], index: number }) {
                             <span className="font-bold bg-red-950/80 px-2 py-1">REALITY_CHECK</span>
                         </div>
                         <blockquote className="text-2xl md:text-3xl font-mono font-bold leading-snug text-white drop-shadow-lg">
-                            <span className="text-red-500 mr-2">"</span>{item.truth}<span className="text-red-500 ml-2">"</span>
+                            <span className="text-red-500 mr-2">&quot;</span>{item.truth}<span className="text-red-500 ml-2">&quot;</span>
                         </blockquote>
                         <div className="h-px w-32 bg-red-500 mt-8 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
                     </div>
@@ -173,7 +173,7 @@ export default function QuotesSection() {
                         The_Truth_Lens_
                     </h2>
                     <p className="mt-4 font-mono text-white/40 text-sm">
-                    // Hover text to reveal the hidden variables.
+                        {`// Hover text to reveal the hidden variables.`}
                     </p>
                 </div>
             </SectionWrapper>
