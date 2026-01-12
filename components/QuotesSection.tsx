@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import TypewriterText from '@/components/TypewriterText';
 import SectionWrapper from '@/components/SectionWrapper';
-import { useState, useRef, MouseEvent } from 'react';
+import { useState, useRef, useEffect, MouseEvent, TouchEvent } from 'react';
 
 const quotes = [
     {
@@ -72,10 +72,13 @@ const quotes = [
     }
 ];
 
-function QuoteItem({ item, index }: { item: typeof quotes[0], index: number }) {
+function QuoteItem({ item, index, isTouchDevice }: { item: typeof quotes[0], index: number, isTouchDevice: boolean }) {
     const textContainerRef = useRef<HTMLDivElement>(null);
     const [maskPosition, setMaskPosition] = useState({ x: 0, y: 0 });
     const [isHovering, setIsHovering] = useState(false);
+
+    // Lens size: smaller on mobile for a more refined look
+    const lensSize = isTouchDevice ? 80 : 120;
 
     const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
         if (!textContainerRef.current) return;
@@ -86,20 +89,46 @@ function QuoteItem({ item, index }: { item: typeof quotes[0], index: number }) {
         });
     };
 
+    // Touch handlers for mobile
+    const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
+        if (!textContainerRef.current) return;
+        const touch = e.touches[0];
+        const rect = textContainerRef.current.getBoundingClientRect();
+        setMaskPosition({
+            x: touch.clientX - rect.left,
+            y: touch.clientY - rect.top
+        });
+    };
+
+    const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+        if (!textContainerRef.current) return;
+        const touch = e.touches[0];
+        const rect = textContainerRef.current.getBoundingClientRect();
+        setMaskPosition({
+            x: touch.clientX - rect.left,
+            y: touch.clientY - rect.top
+        });
+        setIsHovering(true);
+    };
+
+    const handleTouchEnd = () => {
+        setIsHovering(false);
+    };
+
     return (
         <SectionWrapper className="w-full">
-            <div className={`relative w-full py-12 flex flex-col md:flex-row items-center gap-12 md:gap-24 cursor-none ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}>
+            <div className={`relative w-full py-6 md:py-12 flex flex-col md:flex-row items-center gap-6 md:gap-24 ${isTouchDevice ? 'cursor-pointer' : 'cursor-none'} ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}>
 
                 {/* ---------------- IMAGE COLUMN (Static Positive) ---------------- */}
                 <div className="w-full md:w-1/2 flex justify-center z-10 relative">
-                    <div className="relative w-full max-w-md aspect-square rounded-full shadow-2xl overflow-hidden border border-white/10">
+                    <div className="relative w-full max-w-[200px] md:max-w-md aspect-square rounded-full shadow-2xl overflow-hidden border border-white/10">
                         <img
                             src={item.image_pos}
                             alt={item.name}
                             className="w-full h-full object-cover grayscale transition-all duration-500"
                         />
                         {/* Name Tag Overlay on Image */}
-                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 font-mono text-xs bg-black/80 backdrop-blur-md px-4 py-2 text-white border border-white/20 rounded-full whitespace-nowrap">
+                        <div className="absolute bottom-3 md:bottom-6 left-1/2 -translate-x-1/2 font-mono text-[10px] md:text-xs bg-black/80 backdrop-blur-md px-2 md:px-4 py-1 md:py-2 text-white border border-white/20 rounded-full whitespace-nowrap">
                             {item.name} <span className="text-white/20">/</span><span className="text-white/20">/</span> {item.role}
                         </div>
                     </div>
@@ -112,51 +141,54 @@ function QuoteItem({ item, index }: { item: typeof quotes[0], index: number }) {
                     onMouseMove={handleMouseMove}
                     onMouseEnter={() => setIsHovering(true)}
                     onMouseLeave={() => setIsHovering(false)}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
                     className="w-full md:w-1/2 z-10 grid grid-cols-1"
                 >
                     {/* Layer 1: Positive (Base) - Hidden under lens */}
                     <div
-                        className="col-start-1 row-start-1 space-y-6"
+                        className="col-start-1 row-start-1 space-y-3 md:space-y-6"
                         style={{
                             maskImage: isHovering
-                                ? `radial-gradient(circle 120px at ${maskPosition.x}px ${maskPosition.y}px, transparent 100%, black 100%)`
+                                ? `radial-gradient(circle ${lensSize}px at ${maskPosition.x}px ${maskPosition.y}px, transparent 100%, black 100%)`
                                 : 'none',
                             WebkitMaskImage: isHovering
-                                ? `radial-gradient(circle 120px at ${maskPosition.x}px ${maskPosition.y}px, transparent 100%, black 100%)`
+                                ? `radial-gradient(circle ${lensSize}px at ${maskPosition.x}px ${maskPosition.y}px, transparent 100%, black 100%)`
                                 : 'none',
                         }}
                     >
-                        <div className="font-mono text-blue-400 text-sm tracking-widest uppercase mb-2">
+                        <div className="font-mono text-blue-400 text-xs md:text-sm tracking-widest uppercase mb-1 md:mb-2">
                             <TypewriterText text="<PositivePerspective />" delay={0} />
                         </div>
                         {/* Added minimal min-height to prevent jarring layout shifts if truth is wildly larger, though Grid handles max height */}
-                        <blockquote className="text-2xl md:text-3xl font-mono font-light leading-snug text-white/80">
-                            <span className="text-white/30 mr-2">{'"'}</span>{item.positive}<span className="text-white/30 ml-2">{'"'}</span>
+                        <blockquote className="text-lg md:text-3xl font-mono font-light leading-snug text-white/80">
+                            <span className="text-white/30 mr-1 md:mr-2">{'"'}</span>{item.positive}<span className="text-white/30 ml-1 md:ml-2">{'"'}</span>
                         </blockquote>
-                        <div className="h-px w-20 bg-white/20 mt-8" />
+                        <div className="h-px w-12 md:w-20 bg-white/20 mt-4 md:mt-8" />
                     </div>
 
                     {/* Layer 2: Truth (Reveal) - Visible under lens */}
                     <div
-                        className="col-start-1 row-start-1 space-y-6 pointer-events-none"
+                        className="col-start-1 row-start-1 space-y-3 md:space-y-6 pointer-events-none"
                         style={{
                             maskImage: isHovering
-                                ? `radial-gradient(circle 120px at ${maskPosition.x}px ${maskPosition.y}px, black 100%, transparent 100%)`
+                                ? `radial-gradient(circle ${lensSize}px at ${maskPosition.x}px ${maskPosition.y}px, black 100%, transparent 100%)`
                                 : 'none',
                             WebkitMaskImage: isHovering
-                                ? `radial-gradient(circle 120px at ${maskPosition.x}px ${maskPosition.y}px, black 100%, transparent 100%)`
+                                ? `radial-gradient(circle ${lensSize}px at ${maskPosition.x}px ${maskPosition.y}px, black 100%, transparent 100%)`
                                 : 'none',
                             opacity: isHovering ? 1 : 0,
                             zIndex: 20
                         }}
                     >
-                        <div className="font-mono text-red-500 text-sm tracking-widest uppercase mb-2">
-                            <span className="font-bold bg-red-950/80 px-2 py-1">REALITY_CHECK</span>
+                        <div className="font-mono text-red-500 text-xs md:text-sm tracking-widest uppercase mb-1 md:mb-2">
+                            <span className="font-bold bg-red-950/80 px-1.5 md:px-2 py-0.5 md:py-1">REALITY_CHECK</span>
                         </div>
-                        <blockquote className="text-2xl md:text-3xl font-mono font-bold leading-snug text-white drop-shadow-lg">
-                            <span className="text-red-500 mr-2">{'"'}</span>{item.truth}<span className="text-red-500 ml-2">{'"'}</span>
+                        <blockquote className="text-lg md:text-3xl font-mono font-bold leading-snug text-white drop-shadow-lg">
+                            <span className="text-red-500 mr-1 md:mr-2">{'"'}</span>{item.truth}<span className="text-red-500 ml-1 md:ml-2">{'"'}</span>
                         </blockquote>
-                        <div className="h-px w-32 bg-red-500 mt-8 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
+                        <div className="h-px w-20 md:w-32 bg-red-500 mt-4 md:mt-8 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
                     </div>
                 </div>
             </div>
@@ -165,21 +197,31 @@ function QuoteItem({ item, index }: { item: typeof quotes[0], index: number }) {
 }
 
 export default function QuotesSection() {
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+    // Detect touch device on mount
+    useEffect(() => {
+        const hasTouchScreen = 'ontouchstart' in window ||
+            navigator.maxTouchPoints > 0 ||
+            window.matchMedia('(pointer: coarse)').matches;
+        setIsTouchDevice(hasTouchScreen);
+    }, []);
+
     return (
-        <section className="relative z-10 py-32 px-6 md:px-20 max-w-7xl mx-auto text-white space-y-32">
+        <section className="relative z-10 py-16 md:py-32 px-4 md:px-20 max-w-7xl mx-auto text-white space-y-12 md:space-y-32">
             <SectionWrapper>
-                <div className="text-center mb-24">
-                    <h2 className="text-4xl md:text-6xl font-bold tracking-tighter font-mono border-b border-white/10 pb-4 inline-block">
+                <div className="text-center mb-12 md:mb-24">
+                    <h2 className="text-2xl md:text-6xl font-bold tracking-tighter font-mono border-b border-white/10 pb-2 md:pb-4 inline-block">
                         The_Truth_Lens_
                     </h2>
-                    <p className="mt-4 font-mono text-white/40 text-sm">
-                        <span className="opacity-50">/</span><span className="opacity-50">/</span> Hover text to reveal the hidden variables.
+                    <p className="mt-2 md:mt-4 font-mono text-white/40 text-xs md:text-sm">
+                        <span className="opacity-50">/</span><span className="opacity-50">/</span> {isTouchDevice ? 'Tap & hold text to reveal the hidden variables.' : 'Hover text to reveal the hidden variables.'}
                     </p>
                 </div>
             </SectionWrapper>
 
             {quotes.map((item, index) => (
-                <QuoteItem key={index} item={item} index={index} />
+                <QuoteItem key={index} item={item} index={index} isTouchDevice={isTouchDevice} />
             ))}
         </section>
     );

@@ -1,13 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export default function CustomCursor() {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [isHovering, setIsHovering] = useState(false);
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
 
     useEffect(() => {
+        // Detect touch device
+        const checkTouchDevice = () => {
+            const hasTouchScreen = 'ontouchstart' in window ||
+                navigator.maxTouchPoints > 0 ||
+                window.matchMedia('(pointer: coarse)').matches;
+            setIsTouchDevice(hasTouchScreen);
+        };
+
+        checkTouchDevice();
+
+        // Don't add mouse listeners on touch devices
+        if (isTouchDevice) return;
+
         const updateMousePosition = (e: MouseEvent) => {
             setMousePosition({ x: e.clientX, y: e.clientY });
         };
@@ -31,12 +45,15 @@ export default function CustomCursor() {
                 el.removeEventListener('mouseleave', handleMouseLeave);
             });
         };
-    }, []);
+    }, [isTouchDevice]);
+
+    // Don't render cursor on touch devices
+    if (isTouchDevice) return null;
 
     return (
         <motion.div
             className="fixed top-0 left-0 w-8 h-8 bg-white rounded-full mix-blend-difference pointer-events-none z-50 flex items-center justify-center overflow-hidden backdrop-blur-sm"
-            style={{ opacity: 0.8 }} // Reduce opacity to see through slightly
+            style={{ opacity: 0.8 }}
             animate={{
                 x: mousePosition.x - 16,
                 y: mousePosition.y - 16,

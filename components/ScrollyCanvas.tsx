@@ -16,9 +16,9 @@ export default function ScrollyCanvas({
 
     // Add spring physics to the scroll progress for smoother playback
     const smoothProgress = useSpring(scrollYProgress, {
-        stiffness: 100,
-        damping: 30,
-        restDelta: 0.001
+        stiffness: 60,
+        damping: 40,
+        restDelta: 0.0001
     });
 
     // Preload Images
